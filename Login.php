@@ -19,9 +19,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "This email is not registered.";
     } else {
         $user = $result->fetch_assoc();
-        // هنا يتم التأكد من كلمة المرور
         if ($password === $user['password']) {
-            $_SESSION['user_id'] = $user['user_id']; // تخزين الجلسة
+            $_SESSION['user_id'] = $user['user_id']; 
             header("Location:index.php");
             exit;
         } else {

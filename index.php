@@ -7,32 +7,37 @@ $conn = $db->conn;
 
 
 /*add*/
+/* --- الجزء المصلح للإضافة للعربة --- */
 if (isset($_POST['add_now'])) {
-if (!isset($_SESSION['user_id'])) {
+    if (!isset($_SESSION['user_id'])) {
         echo "<script>alert('Please Login First'); window.location.href='login.php';</script>";
         exit();
     }
 
+    // 1. استقبال البيانات أولاً (حل مشكلة Undefined variable)
     $product_id = $_POST['product_id'];
-    $quantity = $_POST['quantity'];
+    $quantity = (int)$_POST['quantity']; // تحويل لرقم لضمان عدم حدوث خطأ حسابي
     $user_id = $_SESSION['user_id'];
 
+    // 2. البحث عن العربة (استخدام ->query بدل mysqli_query)
     $sql_cart = "SELECT cart_id FROM carts WHERE user_id = '$user_id'";
-    $result_cart = mysqli_query($conn, $sql_cart);
+    $result_cart = $conn->query($sql_cart); 
 
-    if (mysqli_num_rows($result_cart) > 0) {
-        $row_cart = mysqli_fetch_assoc($result_cart);
+    if ($result_cart && $result_cart->num_rows > 0) {
+        $row_cart = $result_cart->fetch_assoc();
         $cart_id = $row_cart['cart_id'];
     } else {
         $sql_create_cart = "INSERT INTO carts (user_id) VALUES ('$user_id')";
-        mysqli_query($conn, $sql_create_cart);
-        $cart_id = mysqli_insert_id($conn);
+        $conn->query($sql_create_cart);
+        $cart_id = $conn->insert_id;
     }
 
+    // 3. التحقق من المنتج في العربة
     $sql_check_item = "SELECT * FROM cart_items WHERE cart_id = '$cart_id' AND product_id = '$product_id'";
-    $result_item = mysqli_query($conn, $sql_check_item);
+    $result_item = $conn->query($sql_check_item);
 
-    if (mysqli_num_rows($result_item) > 0) {
+    if ($result_item && $result_item->num_rows > 0) {
+        // تحديث الكمية (تأكدي من وجود مسافات حول علامة +)
         $sql_action = "UPDATE cart_items SET quantity = quantity + $quantity 
                        WHERE cart_id = '$cart_id' AND product_id = '$product_id'";
     } else {
@@ -40,12 +45,17 @@ if (!isset($_SESSION['user_id'])) {
                        VALUES ('$cart_id', '$product_id', '$quantity')";
     }
 
-    if (mysqli_query($conn, $sql_action)) {
-
-header("Location: " . $_SERVER['PHP_SELF'] . "?added=success");
-      exit();
+    // 4. تنفيذ العملية النهائية
+    if ($conn->query($sql_action)) {
+        header("Location: " . $_SERVER['PHP_SELF'] . "?id=" . $product_id . "&added=success");
+        exit();
+    } else {
+        // في حال فشل، اطبعي الخطأ لمعرفة السبب
+        die("Error: " . $conn->error);
     }
 }
+
+
 /*add*/
 
 
@@ -66,6 +76,27 @@ if (isset($_GET['search-btn']) && !empty($_GET['search'])) {
 /*search*/
 
 ?>
+
+<?php
+$cart_count = 0; // القيمة الافتراضية
+
+if (isset($_SESSION['user_id'])) {
+    $u_id = $_SESSION['user_id'];
+    
+    // استعلام لجلب مجموع الكميات لكل المنتجات في عربة هذا المستخدم
+    $sql_count = "SELECT SUM(ci.quantity) as total_items 
+                  FROM cart_items ci 
+                  JOIN carts c ON ci.cart_id = c.cart_id 
+                  WHERE c.user_id = '$u_id'";
+                  
+    $result_count = $conn->query($sql_count);
+    
+    if ($result_count && $row = $result_count->fetch_assoc()) {
+        $cart_count = $row['total_items'] ? $row['total_items'] : 0;
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -155,8 +186,9 @@ if (isset($_GET['search-btn']) && !empty($_GET['search'])) {
           </button>
 <a href="./cart.php" class="action-btn" title="Shopping Cart">
     <ion-icon name="bag-handle-outline"></ion-icon>
-    <span class="count">0</span>
-  </a>
+    <span class="count"><?php echo $cart_count; ?></span>
+</a>
+
 
 <a href="./LandingPage.php" class="action-btn" title="Logout">
   <ion-icon name="log-out-outline"></ion-icon>
@@ -353,7 +385,7 @@ if (isset($_GET['search-btn']) && !empty($_GET['search'])) {
                     style="background: #ff8f9c; color: white; border: none; padding: 0 15px; border-radius: 5px; height: 35px; cursor: pointer; font-size: 12px; font-weight: 600; flex-grow: 1;">
               ADD TO CART
             </button>
-              <button type="submit" name="add_now" class="add-cart-btn" 
+              <button type="submit" name="add_now_Fav" class="add-cart-btn" 
                     style="background: #ff8f9c; color: white; border: none; padding: 0 15px; border-radius: 5px; height: 35px; cursor: pointer; font-size: 12px; font-weight: 600; flex-grow: 1;">
               ADD TO Fav
             </button> 

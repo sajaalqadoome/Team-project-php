@@ -4,6 +4,57 @@ require_once "./connect.php";
 $db = new Database();
 $conn = $db->conn;
 
+/*add*/
+
+/* --- الإضافة لقاعدة البيانات --- */
+if (isset($_POST['add_now'])) {
+    if (!isset($_SESSION['user_id'])) {
+        echo "<script>alert('Please Login First'); window.location.href='login.php';</script>";
+        exit();
+    }
+
+    $product_id = $_POST['product_id'];
+    $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
+    $user_id = $_SESSION['user_id'];
+
+    // 1. التأكد من وجود عربة للمستخدم أو إنشاؤها
+    $sql_cart = "SELECT cart_id FROM carts WHERE user_id = '$user_id'";
+    $result_cart = $conn->query($sql_cart); // استخدام الـ OOP للاتصال
+
+    if ($result_cart && $result_cart->num_rows > 0) {
+        $row_cart = $result_cart->fetch_assoc();
+        $cart_id = $row_cart['cart_id'];
+    } else {
+        $conn->query("INSERT INTO carts (user_id) VALUES ('$user_id')");
+        $cart_id = $conn->insert_id;
+    }
+
+    // 2. التحقق إذا كان المنتج موجود مسبقاً في العربة
+    $sql_check_item = "SELECT * FROM cart_items WHERE cart_id = '$cart_id' AND product_id = '$product_id'";
+    $result_item = $conn->query($sql_check_item);
+
+    if ($result_item && $result_item->num_rows > 0) {
+        // تحديث الكمية (Update)
+        $sql_action = "UPDATE cart_items SET quantity = quantity + $quantity 
+                       WHERE cart_id = '$cart_id' AND product_id = '$product_id'";
+    } else {
+        // إضافة منتج جديد (Insert)
+        $sql_action = "INSERT INTO cart_items (cart_id, product_id, quantity) 
+                       VALUES ('$cart_id', '$product_id', '$quantity')";
+    }
+
+    if ($conn->query($sql_action)) {
+        // التوجيه لنفس الصفحة (index.php) مع رسالة نجاح عشان ما يطلع 404
+        header("Location: index.php?added=success");
+        exit();
+    } else {
+        echo "Error: " . $conn->error;
+    }
+}
+/*add*/
+
+
+
 if (isset($_GET['id'])) {
     $p_id = $_GET['id']; 
     $sql = "SELECT * FROM products WHERE product_id = ?";
@@ -21,7 +72,7 @@ if (isset($_GET['id'])) {
         die("Product Not Found");
     }
 } else {
-    header("Location: products.php");
+    header("Location: index.php");
     exit;
 }
 
@@ -59,6 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_comment'])) {
         }
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -95,9 +147,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_comment'])) {
     </style>
 </head>
 <body>
+<?php if (isset($_GET['added']) && $_GET['added'] == 'success'): ?>
+    <script>
+        alert("Success: Product added to cart!");
+        window.history.replaceState({}, document.title, window.location.pathname);
+    </script>
+<?php endif; ?>
 
 <div class="details-container">
-  
 
 <div class="product-image-box">
     <img src="./<?php echo $product['image']; ?>" 
@@ -113,11 +170,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_comment'])) {
             <?php echo !empty($product['description']) ? $product['description'] : "Luxury and elegance combined in this high-quality timepiece, designed to fit your unique style."; ?>
         </p>
 
-        <form action="./anon-ecommerce-website/cart_handler.php" method="POST">
+        <form method="POST">
             <input type="hidden" name="product_id" value="<?php echo $p_id; ?>">
             <div style="display: flex; gap: 15px; align-items: center;">
-                <input type="number" name="quantity" value="1" min="1" style="width: 60px; padding: 10px; border: 1.5px solid #eee; border-radius: 8px;">
-                <button type="submit" name="add_to_cart" class="btn-action">ADD TO CART</button>
+                <input type="number" name="add_now" value="1" min="1" style="width: 60px; padding: 10px; border: 1.5px solid #eee; border-radius: 8px;"><button type="submit" name="add_now" class="add-cart-btn" 
+                    style="background: #ff8f9c; color: white; border: none; padding: 0 15px; border-radius: 5px; height: 35px; cursor: pointer; font-size: 12px; font-weight: 600; flex-grow: 1;">
+              ADD TO CART
+            </button>
             </div>
         </form>
     </div>
