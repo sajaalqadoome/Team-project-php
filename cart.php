@@ -1,10 +1,9 @@
 <?php
 session_start();
-require_once "connect.php"; // تأكد من مسار ملف الاتصال
+require_once "connect.php";
 $db = new Database();
 $conn = $db->conn;
 
-// 1. التحقق من تسجيل الدخول
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -12,12 +11,11 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// 2. معالجة حذف منتج إذا تم الضغط على زر الحذف
 if (isset($_GET['remove'])) {
     $item_id = $_GET['remove'];
     $delete_query = "DELETE FROM cart_items WHERE cart_item_id = '$item_id'";
     mysqli_query($conn, $delete_query);
-    header("Location: cart.php"); // إعادة تحميل الصفحة لتحديث البيانات
+    header("Location: cart.php");
     exit();
 }
 ?>
@@ -56,7 +54,6 @@ if (isset($_GET['remove'])) {
         </thead>
         <tbody>
             <?php
-            // استعلام سحب البيانات بالربط بين الجداول
             $query = "SELECT ci.cart_item_id, ci.quantity, p.name, p.price, p.image 
                       FROM cart_items ci 
                       JOIN products p ON ci.product_id = p.product_id 

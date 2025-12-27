@@ -19,10 +19,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "This email is not registered.";
     } else {
         $user = $result->fetch_assoc();
+        // ملاحظة: إذا كنتِ تستخدمين password_hash في التسجيل، استخدمي password_verify هنا
         if ($password === $user['password']) {
             $_SESSION['user_id'] = $user['user_id']; 
-            header("Location:index.php");
-            exit;
+
+            // --- هنا نضع كود الدمج ليعمل فور نجاح الدخول ---
+            echo "<script>
+                (async function() {
+                    const guestCart = localStorage.getItem('guest_cart');
+                    if (guestCart && JSON.parse(guestCart).length > 0) {
+                        try {
+                            await fetch('merge_cart.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ cart: guestCart })
+                            });
+                            localStorage.removeItem('guest_cart');
+                        } catch (err) {
+                            console.error('Error merging cart:', err);
+                        }
+                    }
+                    window.location.href = 'index.php'; 
+                })();
+            </script>";
+            exit();
         } else {
             $error = "Incorrect email or password.";
         }

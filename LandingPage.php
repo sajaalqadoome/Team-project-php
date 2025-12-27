@@ -26,7 +26,6 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            /* خلفية فاتحة مثل خلفية الموقع */
             background-color: var(--cultured); 
             text-align: center;
         }
@@ -35,7 +34,6 @@
             background-color: var(--white);
             padding: 60px 40px;
             border-radius: 20px;
-            /* ظل ناعم مثل الـ showcase في الموقع */
             box-shadow: 0 10px 30px hsla(0, 0%, 0%, 0.1);
             max-width: 500px;
             width: 90%;

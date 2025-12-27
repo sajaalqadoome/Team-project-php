@@ -5,50 +5,57 @@ $db = new Database();
 $conn = $db->conn;
 
 /*add*/
-
-/* --- الإضافة لقاعدة البيانات --- */
 if (isset($_POST['add_now'])) {
+    $product_id = $_POST['product_id'];
+    $quantity = (int)$_POST['quantity']; 
+
     if (!isset($_SESSION['user_id'])) {
         echo "<script>alert('Please Login First'); window.location.href='login.php';</script>";
         exit();
     }
 
-    $product_id = $_POST['product_id'];
-    $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
     $user_id = $_SESSION['user_id'];
 
-    // 1. التأكد من وجود عربة للمستخدم أو إنشاؤها
+
+    $check_user = $conn->query("SELECT user_id FROM users WHERE user_id = '$user_id'");
+    if ($check_user->num_rows == 0) {
+        session_destroy();
+        echo "<script>alert('Session expired. Please login again.'); window.location.href='login.php';</script>";
+        exit();
+    }
+
+
     $sql_cart = "SELECT cart_id FROM carts WHERE user_id = '$user_id'";
-    $result_cart = $conn->query($sql_cart); // استخدام الـ OOP للاتصال
+    $result_cart = $conn->query($sql_cart); 
 
     if ($result_cart && $result_cart->num_rows > 0) {
         $row_cart = $result_cart->fetch_assoc();
         $cart_id = $row_cart['cart_id'];
     } else {
-        $conn->query("INSERT INTO carts (user_id) VALUES ('$user_id')");
-        $cart_id = $conn->insert_id;
+        $sql_create_cart = "INSERT INTO carts (user_id) VALUES ('$user_id')";
+        if ($conn->query($sql_create_cart)) {
+            $cart_id = $conn->insert_id;
+        } else {
+            die("Database Error: " . $conn->error);
+        }
     }
 
-    // 2. التحقق إذا كان المنتج موجود مسبقاً في العربة
     $sql_check_item = "SELECT * FROM cart_items WHERE cart_id = '$cart_id' AND product_id = '$product_id'";
     $result_item = $conn->query($sql_check_item);
 
     if ($result_item && $result_item->num_rows > 0) {
-        // تحديث الكمية (Update)
         $sql_action = "UPDATE cart_items SET quantity = quantity + $quantity 
                        WHERE cart_id = '$cart_id' AND product_id = '$product_id'";
     } else {
-        // إضافة منتج جديد (Insert)
         $sql_action = "INSERT INTO cart_items (cart_id, product_id, quantity) 
                        VALUES ('$cart_id', '$product_id', '$quantity')";
     }
 
     if ($conn->query($sql_action)) {
-        // التوجيه لنفس الصفحة (index.php) مع رسالة نجاح عشان ما يطلع 404
-        header("Location: index.php?added=success");
+        header("Location: " . $_SERVER['PHP_SELF'] . "?id=" . $product_id . "&added=success");
         exit();
     } else {
-        echo "Error: " . $conn->error;
+        die("Error: " . $conn->error);
     }
 }
 /*add*/
@@ -170,15 +177,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_comment'])) {
             <?php echo !empty($product['description']) ? $product['description'] : "Luxury and elegance combined in this high-quality timepiece, designed to fit your unique style."; ?>
         </p>
 
-        <form method="POST">
-            <input type="hidden" name="product_id" value="<?php echo $p_id; ?>">
-            <div style="display: flex; gap: 15px; align-items: center;">
-                <input type="number" name="add_now" value="1" min="1" style="width: 60px; padding: 10px; border: 1.5px solid #eee; border-radius: 8px;"><button type="submit" name="add_now" class="add-cart-btn" 
-                    style="background: #ff8f9c; color: white; border: none; padding: 0 15px; border-radius: 5px; height: 35px; cursor: pointer; font-size: 12px; font-weight: 600; flex-grow: 1;">
-              ADD TO CART
-            </button>
-            </div>
-        </form>
+<form method="POST">
+    <input type="hidden" name="product_id" value="<?php echo $p_id; ?>">
+    <div style="display: flex; gap: 15px; align-items: center;">
+        
+        <input type="number" name="quantity" value="1" min="1" 
+        style="width: 60px; padding: 10px; border: 1.5px solid #eee; border-radius: 8px;">
+
+
+        <button type="submit" name="add_now" class="add-cart-btn" 
+                style="background: #ff8f9c; color: white; border: none; padding: 0 15px; border-radius: 5px; height: 35px; cursor: pointer; font-size: 12px; font-weight: 600; flex-grow: 1;">
+            ADD TO CART
+        </button>
+    </div>
+</form>
+
     </div>
 </div>
 
@@ -225,3 +238,66 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_comment'])) {
 <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
 </body>
 </html>
+
+
+
+<script>
+// 1. حساب السعر الفوري عند تغيير الكمية
+const qtyInput = document.getElementById('qty-selector');
+const unitPrice = parseFloat(document.getElementById('unit-price').getAttribute('data-price'));
+const totalDisplay = document.getElementById('total-display');
+
+qtyInput.addEventListener('input', function() {
+    let qty = parseInt(this.value);
+    if (isNaN(qty) || qty < 1) qty = 1; 
+    
+    const totalPrice = (unitPrice * qty).toFixed(2);
+    totalDisplay.innerText = "Total: " + totalPrice + " JD";
+});
+
+// 2. تحديث عداد السلة في الهيدر
+function updateCartIconCount() {
+    const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+    const countElement = document.querySelector('.header-user-actions .action-btn .count');
+    
+    if (!isLoggedIn && countElement) {
+        let cart = JSON.parse(localStorage.getItem('guest_cart')) || [];
+        let total = cart.reduce((sum, item) => sum + parseInt(item.quantity), 0);
+        countElement.innerText = total;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', updateCartIconCount);
+
+// 3. التحكم في زر الإضافة (زوار vs مسجلين)
+document.querySelector('.custom-add-btn').addEventListener('click', function(e) {
+    const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+    
+    if (!isLoggedIn) {
+        e.preventDefault(); // منع الفورم من الإرسال للـ PHP
+
+        const qtyValue = document.getElementById('qty-selector').value;
+
+        const product = {
+            id: this.dataset.id,
+            name: this.dataset.name,
+            price: this.dataset.price,
+            image: this.dataset.image,
+            quantity: qtyValue
+        };
+
+        let cart = JSON.parse(localStorage.getItem('guest_cart')) || [];
+        let found = cart.find(item => item.id === product.id);
+        
+        if (found) {
+            found.quantity = parseInt(found.quantity) + parseInt(product.quantity);
+        } else {
+            cart.push(product);
+        }
+        
+        localStorage.setItem('guest_cart', JSON.stringify(cart));
+        alert("Success: Added to guest cart!");
+        updateCartIconCount();
+    }
+});
+</script>
