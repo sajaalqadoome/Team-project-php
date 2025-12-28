@@ -19,11 +19,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "This email is not registered.";
     } else {
         $user = $result->fetch_assoc();
-        // ملاحظة: إذا كنتِ تستخدمين password_hash في التسجيل، استخدمي password_verify هنا
         if ($password === $user['password']) {
             $_SESSION['user_id'] = $user['user_id']; 
-
-            // --- هنا نضع كود الدمج ليعمل فور نجاح الدخول ---
             echo "<script>
                 (async function() {
                     const guestCart = localStorage.getItem('guest_cart');

@@ -168,14 +168,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <label>Password</label>
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" name="password" placeholder="Min 8 chars" required>
+                        <input type="password" name="password" placeholder="Min 8 chars"  required maxlength="8">
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Confirm Password</label>
                     <div class="input-field">
                         <i class="fas fa-lock"></i>
-                        <input type="password" name="confirm_password" placeholder="Repeat it" required>
+                        <input type="password" name="confirm_password" placeholder="Repeat it" required  maxlength="8" >
                     </div>
                 </div>
             </div>

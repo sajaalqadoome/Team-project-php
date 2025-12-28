@@ -386,7 +386,7 @@ if (isset($_SESSION['user_id'])) {
           $imagePath = $row['image']; 
   ?>
 
-      <div class="showcase">
+    <div class="showcase" style="cursor: pointer;" onclick="window.location.href='./productDetails.php?id=<?php echo $id; ?>';">
 
         <div class="showcase-banner">
           <img src="./<?php echo $imagePath; ?>" alt="<?php echo $name; ?>" width="300" class="product-img default">
@@ -402,10 +402,7 @@ if (isset($_SESSION['user_id'])) {
     <div class="price-box">
         <p class="price">$<?php echo $price; ?></p>
 
-<a href="./productDetails.php?id=<?php echo $row['product_id']; ?>" class="btn-action">
-    <ion-icon name="eye-outline"></ion-icon>
-    <span>View Details</span>
-</a>
+
       </div>
 
     <form method="POST" >
