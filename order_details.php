@@ -9,9 +9,8 @@ if (!isset($_GET['order_id'])) {
     exit;
 }
 
-$order_id = intval($_GET['order_id']); // آمن لأنه int
+$order_id = intval($_GET['order_id']); 
 
-// استعلام جلب بيانات الطلب مع اسم العميل
 $order_query = "SELECT o.order_id, o.user_id, o.order_status, o.total_amount, o.created_at,
                        CONCAT(u.first_name, ' ', u.last_name) AS customer_name, 
                        u.email AS customer_email
@@ -31,7 +30,6 @@ if ($order_result->num_rows == 0) {
 
 $order = $order_result->fetch_assoc();
 
-// استعلام جلب عناصر الطلب مع السعر من جدول products
 $items_query = "SELECT oi.quantity, 
                        p.product_id, 
                        p.name AS product_name, 

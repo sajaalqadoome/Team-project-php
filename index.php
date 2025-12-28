@@ -207,6 +207,10 @@ Text: "The product has been successfully added to the shopping cart",
                 </div>
             </div>
 <!--login & Reg-->  
+
+
+
+
 <!--Search-->
 <form method="get">
     <div class="header-search-container">
@@ -228,9 +232,11 @@ Text: "The product has been successfully added to the shopping cart",
 </a>
 
 
-<a href="./LandingPage.php" class="action-btn" title="Logout">
-  <ion-icon name="log-out-outline"></ion-icon>
-</a>
+<?php if (isset($_SESSION['user_id'])): ?>
+    <a href="./LandingPage.php" class="action-btn" title="Logout">
+        <ion-icon name="log-out-outline"></ion-icon>
+    </a>
+<?php endif; ?>
 
 
         </div>
@@ -269,7 +275,6 @@ Text: "The product has been successfully added to the shopping cart",
 
 
   </header>
-
 
 
 
@@ -436,6 +441,9 @@ Text: "The product has been successfully added to the shopping cart",
 
 <!--Product in DB-->
 
+<!-- Pagination Links -->
+
+<!-- Pagination Links -->
 
           </div>
 

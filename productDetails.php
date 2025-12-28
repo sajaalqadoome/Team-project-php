@@ -127,6 +127,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_comment'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $product['name']; ?> | Details</title>
     <link rel="stylesheet" href="./anon-ecommerce-website/assets/css/style-prefix.css">
+      <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -156,7 +158,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_comment'])) {
 <body>
 <?php if (isset($_GET['added']) && $_GET['added'] == 'success'): ?>
     <script>
-        alert("Success: Product added to cart!");
+        
+        swal({
+            title: "Add success",
+Text: "The product has been successfully added to the shopping cart",
+            icon: "success",
+            button: "Ok",
+        });
         window.history.replaceState({}, document.title, window.location.pathname);
     </script>
 <?php endif; ?>
