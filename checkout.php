@@ -90,7 +90,23 @@ if (isset($_POST['place_order']) && $cart_total > 0) {
 
             mysqli_query($conn, $clear_cart);
 
-            echo "<script>alert('Order Placed Successfully!'); window.location.href='index.php';</script>";
+echo "
+<script src='https://unpkg.com/sweetalert/dist/sweetalert.min.js'></script>
+<script>
+    setTimeout(function() {
+        swal({
+           title: 'Your order was successful!',
+text: 'Your order has been registered. You can track the status from your account.',
+icon: 'success',
+button: 'OK',
+}).then(function() {
+        
+             window.location.href ='order_details.php?order_id=$order_id';
+        });
+    }, 100);
+</script>
+";
+
 
             exit();
 
@@ -117,7 +133,8 @@ if (isset($_POST['place_order']) && $cart_total > 0) {
     <title>Checkout - Anon eCommerce</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <style>
 
         :root {

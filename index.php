@@ -11,10 +11,6 @@ if (isset($_POST['add_now'])) {
     $product_id = $_POST['product_id'];
     $quantity = (int)$_POST['quantity']; 
 
-    if (!isset($_SESSION['user_id'])) {
-        echo "<script>alert('Please Login First'); window.location.href='login.php';</script>";
-        exit();
-    }
 
     $user_id = $_SESSION['user_id'];
 
@@ -107,6 +103,7 @@ if (isset($_SESSION['user_id'])) {
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <title>Anon - eCommerce Website</title>
 
   <!--
@@ -168,13 +165,19 @@ if (isset($_SESSION['user_id'])) {
     </div>
 
   </div>
-
 <?php if (isset($_GET['added']) && $_GET['added'] == 'success'): ?>
     <script>
-        alert("Success: Product added to cart!");
+        swal({
+            title: "Add success",
+Text: "The product has been successfully added to the shopping cart",
+            icon: "success",
+            button: "Ok",
+        });
+
         window.history.replaceState({}, document.title, window.location.pathname);
     </script>
 <?php endif; ?>
+
 
   <!--
     - HEADER
@@ -214,7 +217,7 @@ if (isset($_SESSION['user_id'])) {
     </div>
 </form>
 <!--Search-->
-        <div class="header-user-actions">
+<div class="header-user-actions">
 <a href="./edit_profile.php" class="action-btn" title="Personal information">
     <ion-icon name="person-outline"></ion-icon>
   </a>
@@ -385,50 +388,42 @@ if (isset($_SESSION['user_id'])) {
           $price = $row['price'];
           $imagePath = $row['image']; 
   ?>
+<div class="showcase">
 
-    <div class="showcase" style="cursor: pointer;" onclick="window.location.href='./productDetails.php?id=<?php echo $id; ?>';">
-
-        <div class="showcase-banner">
-          <img src="./<?php echo $imagePath; ?>" alt="<?php echo $name; ?>" width="300" class="product-img default">
-          <img src="./<?php echo $imagePath; ?>" alt="<?php echo $name; ?>" width="300" class="product-img hover">
-          
-        </div>
+    <div class="showcase-banner" onclick="window.location.href='./productDetails.php?id=<?php echo $id; ?>';" style="cursor: pointer;">
+        <img src="./<?php echo $imagePath; ?>" alt="<?php echo $name; ?>" width="300" class="product-img default">
+        <img src="./<?php echo $imagePath; ?>" alt="<?php echo $name; ?>" width="300" class="product-img hover">
+    </div>
 
     <div class="showcase-content">
-    <a href="detalis.php?id=<?php echo $id; ?>">
-        <h3 class="showcase-title"><?php echo $name; ?></h3>
-    </a>
+        <a href="./productDetails.php?id=<?php echo $id; ?>">
+            <h3 class="showcase-title"><?php echo $name; ?></h3>
+        </a>
 
-    <div class="price-box">
-        <p class="price">$<?php echo $price; ?></p>
-
-
-      </div>
-
-    <form method="POST" >
-        <div class="showcase-controls" style="display: flex; gap: 8px; margin-top: 10px; align-items: center; justify-content: center;">
-            
-            <input type="number" name="quantity" value="1" min="1" 
-                   style="width: 45px; border: 1px solid #eee; text-align: center; border-radius: 5px; height: 35px;">
-            
-            <input type="hidden" name="product_id" value="<?php echo $id; ?>"> 
-        <button type="submit" name="add_now" class="add-cart-btn custom-add-btn" 
-        style="background: #ff8f9c; color: white; border: none; padding: 0 15px; border-radius: 5px; height: 35px; cursor: pointer; font-size: 12px; font-weight: 600; flex-grow: 1;"
-        data-id="<?php echo $id; ?>" 
-        data-name="<?php echo $name; ?>" 
-        data-price="<?php echo $price; ?>"
-        data-image="<?php echo $imagePath; ?>">
-    ADD TO CART
-</button>
-
-
-     
-
+        <div class="price-box">
+            <p class="price">$<?php echo $price; ?></p>
         </div>
-    </form>
-</div>  
 
-      </div>
+        <form method="POST">
+            <div class="showcase-controls" style="display: flex; gap: 8px; margin-top: 10px; align-items: center; justify-content: center;">
+                
+                <input type="number" name="quantity" value="1" min="1" 
+                       style="width: 45px; border: 1px solid #eee; text-align: center; border-radius: 5px; height: 35px;">
+                
+                <input type="hidden" name="product_id" value="<?php echo $id; ?>"> 
+                
+                <button type="submit" name="add_now" class="add-cart-btn custom-add-btn" 
+                        style="background: #ff8f9c; color: white; border: none; padding: 0 15px; border-radius: 5px; height: 35px; cursor: pointer; font-size: 12px; font-weight: 600; flex-grow: 1;"
+                        data-id="<?php echo $id; ?>" 
+                        data-name="<?php echo $name; ?>" 
+                        data-price="<?php echo $price; ?>"
+                        data-image="<?php echo $imagePath; ?>">
+                    ADD TO CART
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
   <?php 
       }
@@ -552,7 +547,7 @@ if (isset($_SESSION['user_id'])) {
 
 
 <script>
-// دالة لتحديث عداد السلة في الهيدر فوراً
+
 function updateCartIconCount() {
     const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
     const countElement = document.querySelector('.header-user-actions .action-btn .count');
@@ -564,7 +559,7 @@ function updateCartIconCount() {
     }
 }
 
-// تشغيل العداد عند تحميل الصفحة
+
 document.addEventListener('DOMContentLoaded', updateCartIconCount);
 
 document.querySelectorAll('.custom-add-btn').forEach(button => {
@@ -572,14 +567,12 @@ document.querySelectorAll('.custom-add-btn').forEach(button => {
         const isLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
         
         if (!isLoggedIn) {
-            // 1. منع الفورم من الإرسال لصفحة Login
+          
             e.preventDefault();
 
-            // 2. جلب الكمية من حقل الـ input القريب
             const qtyInput = this.closest('.showcase-controls').querySelector('input[name="quantity"]');
             const qtyValue = qtyInput ? qtyInput.value : 1;
 
-            // 3. تجهيز بيانات المنتج
             const product = {
                 id: this.dataset.id,
                 name: this.dataset.name,
@@ -588,7 +581,6 @@ document.querySelectorAll('.custom-add-btn').forEach(button => {
                 quantity: qtyValue
             };
 
-            // 4. الحفظ في Local Storage
             let cart = JSON.parse(localStorage.getItem('guest_cart')) || [];
             let found = cart.find(item => item.id === product.id);
             if (found) {
@@ -598,10 +590,14 @@ document.querySelectorAll('.custom-add-btn').forEach(button => {
             }
             localStorage.setItem('guest_cart', JSON.stringify(cart));
 
-            alert("Added to guest cart!");
+           swal({
+            title: "Add success",
+Text: "The product has been successfully added to the shopping cart",
+            icon: "success",
+            button: "Ok",
+        });
             updateCartIconCount();
         }
-        // ملاحظة: إذا كان مسجل دخول، لن يدخل هنا وسيعمل الـ PHP (POST) بشكل طبيعي
     });
 });
 </script>

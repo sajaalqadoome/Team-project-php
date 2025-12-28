@@ -51,7 +51,7 @@ if(isset($_POST['delete-btn'])) {
     $stmt->bind_param("i", $user_id);
     
     if ($stmt->execute()) {
-        header("Location: LandingPage.php?status=account_deleted");
+        header("Location: index.php?status=account_deleted");
         exit();
     } else {
         echo "Error: " . $conn->error;
